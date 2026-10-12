@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ntfs-ready"
+version = "0.1.0"
+description = "Safe NTFS setup, mounting and Finder compatibility checks for macOS"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "Diadawnfly"}]
+classifiers = ["Development Status :: 4 - Beta", "Operating System :: MacOS", "Programming Language :: Python :: 3"]
+
+[project.scripts]
+ntfs-ready = "ntfs_ready.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ntfs_ready*"]

@@ -27,7 +27,7 @@ The screenshot is an actual running SwiftUI application showing the real, dispos
 
 ## Verified locally
 
-- 114 Python tests passed, covering core, CLI, installers, source archive, desktop resource packing and the GUI bridge. Disk-action tests use simulated Services/OS boundaries.
+- 120 Python tests passed, covering core, CLI, installers, source archive, desktop resource packing and the GUI bridge. Disk-action tests use simulated Services/OS boundaries.
 - Native domain tests compiled and passed, including strict read-only/writable handling, capacity validity, typed identity, callback binding, private cache layout and runtime environment hardening.
 - The native app compiled and launched; live snapshot data appeared in the real window.
 - Actual disposable NTFS volume discovery, name, driver, capacity, read-only state and removal were checked without modifying user drives.

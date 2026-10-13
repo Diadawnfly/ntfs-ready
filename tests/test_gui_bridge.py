@@ -126,17 +126,77 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(json.loads(output.getvalue())['error'], 'simulated global failure')
 
 
+class TrustedPathTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.base = Path(self.temp.name).resolve()
+        self.executable = self.base / 'simulated-python'
+        self.executable.write_text('SIMULATED PATH ONLY; NOT AN INTERPRETER\n')
+        self.executable.chmod(0o700)
+
+    def stats(self, node):
+        from types import SimpleNamespace
+        return SimpleNamespace(st_uid=os.getuid(), st_mode=0o755)
+
+    def test_known_owned_nonwritable_ancestry_pins_canonical_executable(self):
+        with patch.object(Path, 'lstat', autospec=True, side_effect=self.stats):
+            self.assertEqual(gui_bridge.trusted_path(self.executable, executable=True), str(self.executable))
+
+    def test_world_writable_executable_is_refused_without_policy_mock(self):
+        self.executable.chmod(0o777)
+        with self.assertRaises(core.SafetyError):
+            gui_bridge.trusted_path(self.executable, executable=True)
+
+    def test_group_writable_parent_is_refused(self):
+        def stats(node):
+            value = self.stats(node)
+            if node == self.base:
+                value.st_mode = 0o775
+            return value
+        with patch.object(Path, 'lstat', autospec=True, side_effect=stats):
+            with self.assertRaises(core.SafetyError):
+                gui_bridge.trusted_path(self.executable, executable=True)
+
+    def test_foreign_owner_is_refused(self):
+        def stats(node):
+            value = self.stats(node)
+            if node == self.executable:
+                value.st_uid = os.getuid() + 10000
+            return value
+        with patch.object(Path, 'lstat', autospec=True, side_effect=stats):
+            with self.assertRaises(core.SafetyError):
+                gui_bridge.trusted_path(self.executable, executable=True)
+
+
 class PrepareTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         # macOS temporary directories can have symlink ancestors; use canonical home.
         self.home = Path(self.temp.name).resolve()
+        # Job protocol tests simulate OS boundaries. CI's interpreter/workspace
+        # permissions are not shipping runtime prerequisites; policy is tested
+        # independently in TrustedPathTests. Generated commands are never run.
+        runtime_policy = patch('ntfs_ready.gui_bridge.trusted_path',
+                               side_effect=lambda path, **kwargs: str(Path(path).resolve()))
+        runtime_policy.start()
+        self.addCleanup(runtime_policy.stop)
         self.service = SimulatedService()
         self.bridge = gui_bridge.Bridge(self.service, home=self.home)
 
     def prepare(self, action='mount'):
         return self.bridge.prepare_action(action, 'disk12s1', list(self.service.target.identity))
+
+    def test_simulated_jobs_are_independent_of_host_runtime_permissions(self):
+        # This is never executed: CI can install a group/world-writable Python.
+        simulated_python = self.home / 'simulated-ci-python'
+        simulated_python.write_text('SIMULATED PATH ONLY; NOT AN INTERPRETER\n')
+        simulated_python.chmod(0o777)
+        with patch.object(gui_bridge.sys, 'executable', str(simulated_python)):
+            result = self.prepare()
+        self.assertTrue(Path(result['command_path']).is_file())
+        self.assertEqual(self.service.calls, [])
 
     def test_terminal_handoff_cannot_write_bytecode_into_signed_bundle(self):
         result = self.prepare()

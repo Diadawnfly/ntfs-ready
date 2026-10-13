@@ -41,4 +41,4 @@ The screenshot is an actual running SwiftUI application showing the real, dispos
 - No real user-drive mutation was performed during this GUI validation pass.
 - A successful original SSD/manual-Finder test does not establish performance or reliability of this new GUI handoff.
 - Fresh-machine dependencies/install UX, cross-version GUI behavior, dark visual QA, Developer-ID signing and notarization remain pending.
-- The previously published `v0.1.0-beta` is the terminal release; this local desktop preview does not replace it.
+- The previously published `v0.1.0-beta` remains the separate terminal release. The `v0.2.0-preview` desktop prerelease has its own app ZIP and does not overwrite those older assets.

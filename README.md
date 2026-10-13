@@ -2,9 +2,19 @@
 
 **A free, open-source setup and safe-mounting tool for NTFS on macOS.**
 
-Download the release ZIP, extract it, and double-click **Install.command**. The installer guides you through prerequisites and installs a local launcher. No copy-paste network installer, no hardcoded disk number, no password storage.
+Choose the native desktop preview below, or the separately packaged v0.1 terminal installer. No copy-paste network installer, no hardcoded disk number, no password storage.
 
 > **Early beta, not a filesystem driver.** Our orchestration code is MIT licensed. It invokes separately installed NTFS-3G and macFUSE; modern macFUSE includes closed-source components. This is **not a fully open-source driver stack**, a Paragon clone, or a claim of equivalent performance/reliability. macOS security approvals and restarts cannot be automated away.
+
+## Native desktop preview — v0.2.0-preview
+
+[Download the Apple Silicon desktop preview](https://github.com/Diadawnfly/ntfs-ready/releases/tag/v0.2.0-preview): extract `NTFS-Ready-Desktop-0.2.0-preview-arm64.zip` and open **NTFS Ready.app**. This is a native SwiftUI window with a drive sidebar, real status/capacity, explicit actions, diagnostics and menu-bar entry. It uses an installed Python 3.9+ runtime and separately installed macFUSE/NTFS-3G.
+
+![Actual native application with disposable NTFS test volume](docs/screenshots/desktop-light.png)
+
+**Preview limitations:** ad-hoc signed, not Developer-ID signed/notarized. Authorization still opens system Terminal. Live read-only discovery/display and package signatures have been checked; the GUI confirmation → Terminal authorization → writable mount/verification lifecycle has **not** completed end-to-end validation. Do not use valuable data as a test fixture. See [desktop build and validation](docs/DESKTOP.md).
+
+The `Install.command` instructions below apply to the **separate v0.1 terminal package**, not the desktop ZIP.
 
 ## Why this exists
 
@@ -58,7 +68,7 @@ python3 -m ntfs_ready unmount <partition>
 
 The underlying workflow has been exercised on **Apple Silicon, macOS 27.0.1, macFUSE 5.4.0, NTFS-3G 2026.9.28** with a physical NTFS SSD and confirmed Finder copying. The project CLI and installer receive separate tests; see [validation](docs/VALIDATION.md) for what was actually exercised.
 
-Other hardware/macOS releases, fresh-machine end-to-end installation, performance, Windows-side filesystem checks, power loss and interrupted writes are **not established by that result**. Keep backups. This beta does not provide background automounting, a native menu-bar app, or a direct FSKit backend. UI and fully open FSKit-engine integration are future work, not implemented claims.
+Other hardware/macOS releases, fresh-machine end-to-end installation, performance, Windows-side filesystem checks, power loss and interrupted writes are **not established by that result**. Keep backups. The v0.1 terminal package has no native interface. The separate v0.2 desktop preview adds a native window and menu-bar entry, with its own [validation boundaries](docs/DESKTOP.md). Background automounting and a direct fully open FSKit engine remain future work.
 
 ## Development
 
